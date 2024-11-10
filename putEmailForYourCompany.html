@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Put Email for Your Company</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 300px;
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        input[type="text"], input[type="email"], input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .error, .success, .suspended {
+            text-align: center;
+        }
+        .error {
+            color: red;
+        }
+        .success {
+            color: green;
+        }
+        .suspended {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Put Email for Your Company</h2>
+    <form id="companyForm">
+        <input type="text" id="companyName" placeholder="Company Name" required>
+        <input type="text" id="govRegId" placeholder="Government Registration ID" required>
+        <input type="email" id="companyEmail" placeholder="Company Email" required>
+        <button type="submit">Submit</button>
+        <div class="error" id="error-message"></div>
+        <div class="success" id="success-message"></div>
+        <div class="suspended" id="suspended-message"></div>
+    </form>
+</div>
+
+<script>
+    // Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyBcTEVvxXmv5N8dJav4xNDRy5hXZRjVeM4",
+        authDomain: "chatflow-59776.firebaseapp.com",
+        databaseURL: "https://chatflow-59776-default-rtdb.firebaseio.com",
+        projectId: "chatflow-59776",
+        storageBucket: "chatflow-59776.appspot.com",
+        messagingSenderId: "549003131640",
+        appId: "1:549003131640:web:3f4a7b8cef4c0d8a2b990d",
+        measurementId: "G-V2180PR5CR"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+
+    // Firebase Auth reference
+    const auth = firebase.auth();
+    const firestore = firebase.firestore();
+
+    // Handle form submission
+    document.getElementById("companyForm").addEventListener("submit", function(event) {
+        event.preventDefault();
+
+        const companyName = document.getElementById("companyName").value;
+        const govRegId = document.getElementById("govRegId").value;
+        const companyEmail = document.getElementById("companyEmail").value;
+
+        // Get current signed-in user's email
+        const currentUserEmail = auth.currentUser ? auth.currentUser.email : null;
+
+        if (companyName && govRegId && companyEmail) {
+            // Check if the entered company email matches the current user email
+            if (companyEmail === currentUserEmail) {
+                // Success: Emails match
+                document.getElementById("success-message").textContent = "Company email verified successfully!";
+                document.getElementById("error-message").textContent = "";  // Clear any previous errors
+                document.getElementById("suspended-message").textContent = "";  // Clear suspended message
+
+                // Save the company details in Firestore
+                firestore.collection("companies").add({
+                    companyName: companyName,
+                    govRegId: govRegId,
+                    companyEmail: companyEmail,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                })
+                .then(function(docRef) {
+                    console.log("Company added with ID: ", docRef.id);
+                    alert("Company data saved successfully!");
+                })
+                .catch(function(error) {
+                    console.error("Error adding company: ", error);
+                    document.getElementById("error-message").textContent = "Error saving company data.";
+                });
+            } else {
+                // Failure: Emails do not match
+                document.getElementById("suspended-message").textContent = "Email mismatch: Your account is suspended.";
+                document.getElementById("error-message").textContent = "";  // Clear any previous errors
+                document.getElementById("success-message").textContent = "";  // Clear success message
+            }
+        } else {
+            document.getElementById("error-message").textContent = "Please fill all the fields.";
+            document.getElementById("success-message").textContent = "";  // Clear success message
+            document.getElementById("suspended-message").textContent = "";  // Clear suspended message
+        }
+    });
+</script>
+
+</body>
+</html>
