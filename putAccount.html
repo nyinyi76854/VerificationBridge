@@ -93,16 +93,20 @@
         const email = document.getElementById("email").value;
 
         if (email) {
+            // Get the current timestamp in milliseconds
+            const timestamp = Date.now();
+
             // Create a document in the 'verificationbridge' collection
             firestore.collection("verificationbridge").add({
                 email: email,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                timestamp: timestamp // Use integer timestamp (milliseconds)
             })
             .then(function(docRef) {
                 console.log("Document written with ID: ", docRef.id);
-                // Optionally, you can redirect to another page after success
+                // Success - Clear the form and hide any error message
+                document.getElementById("putAccountForm").reset();
+                document.getElementById("error-message").textContent = "";
                 alert("Account deployed successfully!");
-                window.location.href = "someOtherPage.html"; // Replace with desired page
             })
             .catch(function(error) {
                 console.error("Error adding document: ", error);
