@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Put Account</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 300px;
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        input[type="email"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .error {
+            color: red;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Put Account</h2>
+    <form id="putAccountForm">
+        <input type="email" id="email" placeholder="Email" required>
+        <button type="submit">Deploy</button>
+        <div class="error" id="error-message"></div>
+    </form>
+</div>
+
+<script>
+    // Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyBcTEVvxXmv5N8dJav4xNDRy5hXZRjVeM4",
+        authDomain: "chatflow-59776.firebaseapp.com",
+        databaseURL: "https://chatflow-59776-default-rtdb.firebaseio.com",
+        projectId: "chatflow-59776",
+        storageBucket: "chatflow-59776.appspot.com",
+        messagingSenderId: "549003131640",
+        appId: "1:549003131640:web:3f4a7b8cef4c0d8a2b990d",
+        measurementId: "G-V2180PR5CR"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    
+    // Firestore reference
+    const firestore = firebase.firestore();
+
+    // Handle form submission
+    document.getElementById("putAccountForm").addEventListener("submit", function(event) {
+        event.preventDefault();
+
+        const email = document.getElementById("email").value;
+
+        if (email) {
+            // Create a document in the 'verificationbridge' collection
+            firestore.collection("verificationbridge").add({
+                email: email,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            })
+            .then(function(docRef) {
+                console.log("Document written with ID: ", docRef.id);
+                // Optionally, you can redirect to another page after success
+                alert("Account deployed successfully!");
+                window.location.href = "someOtherPage.html"; // Replace with desired page
+            })
+            .catch(function(error) {
+                console.error("Error adding document: ", error);
+                document.getElementById("error-message").textContent = "Error saving email.";
+            });
+        } else {
+            document.getElementById("error-message").textContent = "Please enter a valid email.";
+        }
+    });
+</script>
+
+</body>
+</html>
