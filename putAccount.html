@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Put Verification bridge</title>
+    <title>Put Verification Bridge</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
@@ -19,11 +19,27 @@
             height: 100vh;
         }
         .container {
+            position: relative;
             background: #fff;
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             width: 300px;
+        }
+        .top-button {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: #2196F3;
+            color: white;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .top-button:hover {
+            background-color: #1976D2;
         }
         h2 {
             text-align: center;
@@ -59,6 +75,7 @@
 <body>
 
 <div class="container">
+    <button class="top-button" onclick="window.location.href='ViewReport.html'">View Reported Emails</button>
     <h2>Put Account</h2>
     <form id="putAccountForm">
         <input type="email" id="email" placeholder="Email" required>
@@ -93,25 +110,36 @@
         const email = document.getElementById("email").value;
 
         if (email) {
-            // Get the current timestamp in milliseconds
-            const timestamp = Date.now();
+            // Check if the email already exists in the collection
+            firestore.collection("verificationbridge").where("email", "==", email).get()
+                .then(function(querySnapshot) {
+                    if (!querySnapshot.empty) {
+                        // Email already exists
+                        document.getElementById("error-message").textContent = "This email is already registered.";
+                    } else {
+                        // Email does not exist - add new entry
+                        const timestamp = Date.now();
 
-            // Create a document in the 'verificationbridge' collection
-            firestore.collection("verificationbridge").add({
-                email: email,
-                timestamp: timestamp // Use integer timestamp (milliseconds)
-            })
-            .then(function(docRef) {
-                console.log("Document written with ID: ", docRef.id);
-                // Success - Clear the form and hide any error message
-                document.getElementById("putAccountForm").reset();
-                document.getElementById("error-message").textContent = "";
-                alert("Account deployed successfully!");
-            })
-            .catch(function(error) {
-                console.error("Error adding document: ", error);
-                document.getElementById("error-message").textContent = "Error saving email.";
-            });
+                        firestore.collection("verificationbridge").add({
+                            email: email,
+                            timestamp: timestamp
+                        })
+                        .then(function(docRef) {
+                            console.log("Document written with ID: ", docRef.id);
+                            document.getElementById("putAccountForm").reset();
+                            document.getElementById("error-message").textContent = "";
+                            alert("Account deployed successfully!");
+                        })
+                        .catch(function(error) {
+                            console.error("Error adding document: ", error);
+                            document.getElementById("error-message").textContent = "Error saving email.";
+                        });
+                    }
+                })
+                .catch(function(error) {
+                    console.error("Error checking document: ", error);
+                    document.getElementById("error-message").textContent = "Error checking email.";
+                });
         } else {
             document.getElementById("error-message").textContent = "Please enter a valid email.";
         }
