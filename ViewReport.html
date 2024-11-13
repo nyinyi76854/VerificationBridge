@@ -1,1 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Report</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            width: 80%;
+            max-width: 800px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+            max-height: 90vh;
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .company {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        .company:last-child {
+            border-bottom: none;
+        }
+        .company h3 {
+            margin: 0;
+        }
+        .company p {
+            margin: 5px 0;
+        }
+        .no-data {
+            text-align: center;
+            color: gray;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Company Report</h2>
+    <div id="companyList" class="no-data">Loading...</div>
+</div>
+
+<script>
+    // Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyBcTEVvxXmv5N8dJav4xNDRy5hXZRjVeM4",
+        authDomain: "chatflow-59776.firebaseapp.com",
+        databaseURL: "https://chatflow-59776-default-rtdb.firebaseio.com",
+        projectId: "chatflow-59776",
+        storageBucket: "chatflow-59776.appspot.com",
+        messagingSenderId: "549003131640",
+        appId: "1:549003131640:web:3f4a7b8cef4c0d8a2b990d",
+        measurementId: "G-V2180PR5CR"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const firestore = firebase.firestore();
+
+    // Retrieve emails from verificationbridge collection and companies collection
+    const companyListDiv = document.getElementById("companyList");
+
+    async function loadCompanies() {
+        try {
+            // Fetch emails in verificationbridge
+            const verificationEmails = new Set();
+            const verificationSnapshot = await firestore.collection("verificationbridge").get();
+            verificationSnapshot.forEach((doc) => {
+                verificationEmails.add(doc.data().email);
+            });
+
+            // Fetch companies and filter by verification emails
+            const companiesSnapshot = await firestore.collection("companies").get();
+            if (companiesSnapshot.empty) {
+                companyListDiv.innerHTML = "<p class='no-data'>No company data available</p>";
+                return;
+            }
+
+            // Clear loading message
+            companyListDiv.innerHTML = "";
+
+            // Display companies not in verificationEmails
+            companiesSnapshot.forEach((doc) => {
+                const companyData = doc.data();
+                if (!verificationEmails.has(companyData.companyEmail)) {
+                    // Only show companies whose email is not in verificationbridge
+                    const companyDiv = document.createElement("div");
+                    companyDiv.classList.add("company");
+                    companyDiv.innerHTML = `
+                        <h3>${companyData.companyName}</h3>
+                        <p><strong>Government Registration ID:</strong> ${companyData.govRegId}</p>
+                        <p><strong>Email:</strong> ${companyData.companyEmail}</p>
+                        <p><strong>Added On:</strong> ${companyData.timestamp ? companyData.timestamp.toDate().toLocaleString() : "N/A"}</p>
+                    `;
+                    companyListDiv.appendChild(companyDiv);
+                }
+            });
+
+            // If no companies are left to show
+            if (companyListDiv.innerHTML === "") {
+                companyListDiv.innerHTML = "<p class='no-data'>No company data available</p>";
+            }
+
+        } catch (error) {
+            console.error("Error retrieving companies:", error);
+            companyListDiv.innerHTML = "<p class='no-data'>Failed to load data. Please try again later.</p>";
+        }
+    }
+
+    // Load companies on page load
+    loadCompanies();
+</script>
+
+</body>
+</html>
 
